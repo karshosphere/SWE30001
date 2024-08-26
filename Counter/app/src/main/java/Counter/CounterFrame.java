@@ -4,6 +4,9 @@ package Counter;
 import java.awt.Dimension;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
+import java.awt.Toolkit;
+import java.awt.Point;
+
 import javax.swing.JButton;
 import javax.swing.JFrame;
 
@@ -14,9 +17,25 @@ public class CounterFrame extends JFrame
 	private JButton  fIncrement;	// increment button
 	private JButton  fDecrement;	// decrement button
 
-	private void updateButtons() {}	// update buttons
-	private void increment() {}		// increment event handler
-	private void decrement() {}		// decrement event handler
+	private void updateButtons()	// update buttons
+	{
+		fIncrement.setEnabled( fView.getValue() < CounterCanvas.MAX );
+		fDecrement.setEnabled( fView.getValue() > 0 );
+	}
+
+	private void increment()		// increment event handler
+	{
+		fView.increment();
+		updateButtons();
+	}
+
+	private void decrement()		// decrement event handler
+	{
+		fView.decrement();
+		updateButtons();
+	}
+
+	private static final long serialVersionUID = 1L;
 
 	// constructor: set up GUI
 	public CounterFrame( String aTitle )
@@ -36,6 +55,30 @@ public class CounterFrame extends JFrame
 		GridBagConstraints lConstraints = new GridBagConstraints();
 		lConstraints.fill = GridBagConstraints.HORIZONTAL;
 
+		fView = new CounterCanvas();
+		lConstraints.gridx = 0;
+		lConstraints.gridy = 0;
+		lConstraints.gridwidth = 2; // occupy 2 rows
+
+		getContentPane().add( fView, lConstraints );
+
+		fIncrement = new JButton( "Inc" );
+		fIncrement.addActionListener( e -> increment() );
+		lConstraints.gridx = 0;
+		lConstraints.gridy = 1;
+		lConstraints.gridwidth = 1;
+		lConstraints.weightx = 0.5;
+
+		getContentPane().add( fIncrement, lConstraints );
+
+		fDecrement = new JButton( "Dec" );
+		fDecrement.addActionListener( e-> decrement() );
+		lConstraints.gridx = 1;
+
+		getContentPane().add( fDecrement, lConstraints );
+
+		pack();
+
 		// add fView, row 0, column 0, 2 column width
 		// add fIncrement, row 1, column 0, 1 column wide
 		// add fDecrement, row 1, column 1, 1 column wide
@@ -52,6 +95,8 @@ public class CounterFrame extends JFrame
 		setLocation( lTopLeft );
 
 		// enable/disable buttons based on counter value
+		fIncrement.setEnabled( fView.getValue() < CounterCanvas.MAX );
+		fDecrement.setEnabled( fView.getValue() > 0 );
 	}
 }
 
