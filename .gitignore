@@ -4,7 +4,8 @@
 **/.DS_Store
 
 **/gradlew*
-**/*gradle*
+**/gradle/
+**/.gradle/
 **/.settings
 **/build
 
