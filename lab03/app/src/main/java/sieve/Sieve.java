@@ -27,70 +27,120 @@ public class Sieve implements ISieve
     public Sieve()
     {
     	// constructor for Sieve    	
+    	fThreadCount = 0;
+		fPrimeCount = 0;
+		fFiltered = 0;
 	}
-    
+  
     public synchronized int getFiltered()
     {
-    	// get number of filtered integers
+    	return fFiltered;
     }
 
     public synchronized int getThreads()
     {
-		// get number of active threads
+    	return fThreadCount;
     }
     
-	public void scheduled( int aNumber )
+    public void scheduled( int aNumberTested )
     {
     	// prints thread name and number being tested
+    	println( "%d scheduled", aNumberTested );
     }
-		
+
     public void flash( int aPrime, int aNumberTested )
     {
     	// prints thread name and number being tested
-    	// waits for 200 ms
+    	println( "Testing %d", aNumberTested );
+
+    	synchronized (this)
+    	{
+        	// waits for 200 ms
+        	try 
+        	{
+    			wait( 200 );
+    		} 
+        	catch (InterruptedException e) 
+        	{}    		
+    	}
     }
 
     public synchronized void incrementThreads( int aPrime )
     {
-    	// increments thread count
+    	fThreadCount++;
     	// prints Thread name, thread count, and prime if prime != 0
     	// otherwise, just prints thread name and thread count
+    	if ( aPrime != 0 )
+    	{
+        	println( "New prime filter for %d, thread count %d", 
+        			 aPrime,
+        			 fThreadCount );
+    	}
+    	else
+    	{
+        	println( "Thread count %d", fThreadCount );
+    	}
     }
 
     public synchronized void decrementThreads()
     {
-    	// decrements thread count
+    	fThreadCount--;
     	// prints Thread name and thread count
+    	println( "Stopped, %d threads remaining", fThreadCount );
     }
 
     public synchronized void incrementFiltered( int aNumberTested )
     {
-    	// increments filtered count
+    	fFiltered++;
     	// prints Thread name and integer filtered
+    	println( "%d eliminated, %d candidates(s) processed", 
+				 aNumberTested,
+				 fFiltered );
     }
 
     public synchronized void incrementPrimes( int aPrime )
     {
-		// increments filtered count
-    	// increments prime count
+    	fFiltered++;
+    	fPrimeCount++;
     	// prints Thread name, prime, and prime count
+    	println( "%d is a prime number, prime number count: %d", 
+	   			 aPrime,
+	   			 fPrimeCount );
     }
-	
+
     public void finished()
-	{
+    {
 		// prints "Test completed." and the number of primes found
-	}
+    	System.out.println( String.format( "Test completed. %d prime numbers found.", 
+				   				           fPrimeCount ) );
+    }
     
     public void reset()
-	{
-	    // reset sieve
-	}
-	
+    {
+    	fThreadCount = 0;
+		fPrimeCount = 0;
+		fFiltered = 0;
+    }
+
     public void execute()
     {
     	// creates generator for 100 integers
+    	fGenerator = new NumberGenerator( 100, this );
     	// starts generator
+    	fGenerator.start();
     	// waits 1ms (in loop) until thread count is zero, requires synchronization
+		synchronized (this)
+		{
+			try
+			{
+				while ( fThreadCount != 0 )
+				{
+					wait( 1 );
+				}
+			}
+			catch (InterruptedException e) 
+			{}
+		}
     }
 	
     public static void main( String[] args )

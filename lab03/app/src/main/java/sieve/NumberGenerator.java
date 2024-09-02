@@ -17,32 +17,86 @@ public class NumberGenerator implements Runnable
 	
     public NumberGenerator( int aLimit, ISieve aSieve )
     {
-    	// constructor
+    	fLimit = aLimit;
+    	fSieve = aSieve;
+    	fThread = null;
+    	fTwo = null;
     }
 	
     public void start()
     {
     	// create "NumberGenerator" thread and start it
-    	// signal to Sieve that a thread has been started, use 0 as argument
+    	fThread = new Thread( this, "NumberGenerator" );
+    	fThread.start();
+    	
+    	// signal to Sieve that a "NumberGenerator" thread has been started
+    	// use 0 as argument
+    	fSieve.incrementThreads( 0 );
     }
 	
     public void stop()
     {
     	// if fTwo is not null, stop fTwo
+    	if ( fTwo != null )
+    	{
+    		fTwo.stop();
+    	}
     }
 	
     public void run()
     {
-    	// mark 1 as filtered (Sieve)
-    	// mark 2 as filtered and add 2 as prime (Sieve)
-    	// create a filter for 2 and start it
-    	// while the thread is active, send every 100 ms
-    	// the next integer to the fTwo filter
-    	// stop at fLimit
-    	// wait for 1 ms while the Sieve returns getFiltered() != fLimit
-    	// stop the generator
-    	// wait for 1 ms while the Sieve returns getThreads() > 1
-		// interrupt thread
-    	// finally, decrement the Sieve's thread count by one and finish
+		try 
+		{
+			synchronized(this)
+			{
+		    	// mark 1 as filtered (Sieve)
+		    	fSieve.incrementFiltered( 1 );
+
+		    	// mark 2 as prime (Sieve)
+		    	fSieve.incrementPrimes( 2 );
+
+		    	// create a filter for 2 and start it
+		    	fTwo = new PrimeFilter( 2, fSieve );
+		    	fTwo.start();
+		    	
+		    	// while the thread is active, send every 100 ms
+		    	// the next integer to the fTwo filter
+		    	// stop at fLimit
+		    	// wait for 1 ms while the Sieve returns getFiltered() != fLimit
+		    	// stop the generator
+		    	// finally, decrement the Sieve’s thread count by one
+
+		    	if ( fThread != null )
+				{
+					for ( int i = 3; i <= fLimit; i++ )
+					{
+						wait( 100 );
+						fSieve.scheduled( i );
+						fTwo.filter( i );
+					}
+					
+					while ( fSieve.getFiltered() != fLimit )
+					{
+						wait( 1 );
+					}
+					
+					stop();
+
+					while ( fSieve.getThreads() > 1 )
+					{
+						wait( 1 );
+					}
+					
+					fThread.interrupt();
+				}
+			}
+		}
+		catch (InterruptedException e) 
+		{}
+		
+		fThread = null;
+    	fSieve.decrementThreads();
+    	
+    	fSieve.finished();
 	}
 }

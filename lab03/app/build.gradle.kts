@@ -34,7 +34,7 @@ java {
 
 application {
     // Define the main class for the application.
-    mainClass = "sieve.sieve"
+    mainClass = "sieve.Sieve"
 }
 
 tasks.named<Test>("test") {
