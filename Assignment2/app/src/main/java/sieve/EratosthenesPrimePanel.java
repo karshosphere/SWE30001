@@ -1,9 +1,3 @@
-/*
- *	SWE30001, Problem Set 2, 2024
- *
- *	Multi-threaded Sieve of Eratosthenes
- * 
- */
 
 package sieve;
 
@@ -18,122 +12,117 @@ import edu.swin.rt.FlashingNumberCanvas;
 
 public class EratosthenesPrimePanel extends JPanel implements IPrimes
 {
-	private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = 1L;
 
-	private int fRowCount;
-	private int fColumnCount;
-	
-	private FlashingNumberCanvas fNumbers[][];
-	
-	static
-	{
-        // to assist formatting
-		FlashingNumberCanvas.DefaultMaxValue = 100;		
-	}
-	
-	public EratosthenesPrimePanel( int aRowCount, int aColumnCount )
-	{
-		fRowCount = aRowCount;
-		fColumnCount = aColumnCount;
-		fNumbers = new FlashingNumberCanvas[fRowCount][fColumnCount];
+    private int fRowCount;
+    private int fColumnCount;
 
-		setLayout( new GridBagLayout() );
-		
-		GridBagConstraints lConstraints = new GridBagConstraints();
-		lConstraints.insets = new Insets( 5, 5, 5, 5 );
-		
-		
-		// Set array values
-		for ( int i = 0; i < fNumbers.length; i++ )
-		{
-			for ( int j = 0; j < fNumbers[i].length; j++ )
-			{
-				lConstraints.gridy = i;
-				lConstraints.gridx = j;
+    private FlashingNumberCanvas fNumbers[][];
 
-				FlashingNumberCanvas numberCanvas = new FlashingNumberCanvas( (i+1) + (j*10) );
-				numberCanvas.setBackground( Color.cyan );
-				fNumbers[i][j] = numberCanvas;
-				add( numberCanvas, lConstraints );
-			}
-		}
-	}
-	
-	private FlashingNumberCanvas getNumberCanvas( int aNumber )
-	{
-		// auxiliary function to find and return the object in fNumbers
-		// that corresponds to aNumber
-		
-		// decrement aNumber
-		aNumber--;
-		// Use decremented number to find correct row and column
-		return fNumbers[aNumber % fRowCount][aNumber / fColumnCount];
-	}
-
-	// interface methods
-	@Override public void flash(int aPrime)
+    static
     {
-		// flash a number canvas when it is being used for division
-		FlashingNumberCanvas numberCanvas = getNumberCanvas( aPrime );
+        FlashingNumberCanvas.DefaultMaxValue = 100;		
+    }
 
-		// Change color
-		numberCanvas.flash();
-		
-		synchronized ( this )
-    	{
-        	try 
-        	{
-        		wait(10);
-        	}
-        	catch ( InterruptedException e ) 
-        	{}    		
-    	}
-	}
+    public EratosthenesPrimePanel( int aRowCount, int aColumnCount ) {
+        // initialize row and column
+        fRowCount = aRowCount;
+        fColumnCount = aColumnCount;
 
-	@Override public void setAsProcessed( int aNumber )
+        // 2D array to hold FlashingNumberCanvas objects
+        fNumbers = new FlashingNumberCanvas[fRowCount][fColumnCount];
+
+        // layout manager to GridBagLayout
+        setLayout( new GridBagLayout() );
+
+        // to control how each number canvas is placed within the grid
+        GridBagConstraints lConstraints = new GridBagConstraints();
+        lConstraints.insets = new Insets(5, 5, 5, 5); // add spacing
+
+        // initialise and place each FlashingNumberCanvas in the grid
+        for ( int i = 0; i < fNumbers.length; i++ ) {
+            for ( int j = 0; j < fNumbers[i].length; j++ ) { 
+                                                           
+                lConstraints.gridy = i; // row position
+                lConstraints.gridx = j; // column position
+
+                // new FlashingNumberCanvas
+                FlashingNumberCanvas numberCanvas = new FlashingNumberCanvas(
+                    ( i + 1 ) + ( j * 10 )
+                );
+
+                // set background to cyan
+                numberCanvas.setBackground( Color.cyan );
+
+                // store FlashingNumberCanvas in the 2D array
+                fNumbers[i][j] = numberCanvas;
+
+                // add FlashingNumberCanvas to panel using the grid constraints
+                add(numberCanvas, lConstraints);
+            }
+        }
+    }
+
+    // auxiliary function to find and return the object in fNumbers
+    private FlashingNumberCanvas getNumberCanvas( int aNumber )
     {
-		// Visually change number canvas to indicate that it has been processed
-		FlashingNumberCanvas numberCanvas = getNumberCanvas( aNumber );
+        aNumber--;
+        return fNumbers[aNumber % fRowCount][aNumber / fColumnCount];
+    }
 
-		// Change color
-		numberCanvas.setBackground( Color.gray );
-		numberCanvas.setForeground( Color.black );
-	}
-
-	@Override public void setAsAdded( int aNumber )
+    // auxiliary function to find and return the object in fNumbers
+    @Override public void flash(int aPrime)
     {
-		// Show number canvas as ready to be processed
-		FlashingNumberCanvas numberCanvas = getNumberCanvas( aNumber );
-		// Change color
-		numberCanvas.setBackground( Color.yellow );
-	}
+        FlashingNumberCanvas numberCanvas = getNumberCanvas( aPrime );
+        numberCanvas.flash();
 
-	@Override public void setAsPrime( int aNumber )
+        synchronized ( this )
+        {
+            try { wait(10); }
+            catch ( InterruptedException e ) {}    		
+        }
+    }
+
+    @Override public void setAsProcessed( int aNumber )
     {
-		// Visually set a number canvas as prime
-		FlashingNumberCanvas numberCanvas = getNumberCanvas( aNumber );
-		// Change color
-		numberCanvas.setBackground( Color.green );
-		numberCanvas.setForeground( Color.red );
-	}
+        // visually change number canvas to indicate that it has been processed
+        FlashingNumberCanvas numberCanvas = getNumberCanvas( aNumber );
 
-	@Override public void reset()
+        numberCanvas.setBackground( Color.gray );
+        numberCanvas.setForeground( Color.black );
+    }
+
+    // show number canvas as ready to be processed
+    @Override public void setAsAdded( int aNumber )
     {
-		// Reset all numbers
-		
-		for ( int i = 0; i < fNumbers.length; i++ )
-		{
-			for ( int j = 0; j < fNumbers[i].length; j++ )
-			{
-				FlashingNumberCanvas numberCanvas = fNumbers[i][j];
+        FlashingNumberCanvas numberCanvas = getNumberCanvas( aNumber );
+        numberCanvas.setBackground( Color.yellow );
+    }
 
-				// reset colors
-				numberCanvas.setBackground( Color.cyan );
-				numberCanvas.setForeground( Color.black );
-				
-				fNumbers[i][j] = numberCanvas;
-			}
-		}
-		
-	}	
+    // visually set a number canvas as prime
+    @Override public void setAsPrime( int aNumber )
+    {
+        FlashingNumberCanvas numberCanvas = getNumberCanvas( aNumber );
+        numberCanvas.setBackground( Color.green );
+        numberCanvas.setForeground( Color.red );
+    }
+
+    // reset all numbers
+    @Override public void reset()
+    {
+        for ( int i = 0; i < fNumbers.length; i++ )
+        {
+            for ( int j = 0; j < fNumbers[i].length; j++ )
+            {
+                FlashingNumberCanvas numberCanvas = fNumbers[i][j];
+
+                // reset colors ( set back to default )
+                numberCanvas.setBackground( Color.cyan );
+                numberCanvas.setForeground( Color.black );
+
+                fNumbers[i][j] = numberCanvas;
+            }
+        }
+    }	
 }
+
